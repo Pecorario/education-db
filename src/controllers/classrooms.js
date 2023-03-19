@@ -1,60 +1,126 @@
-import Classroom from '../models/classroomsModel.js';
+import { School, Classroom, Teacher } from '../../associations.js';
 
-function findAll(req, res) {
-  Classroom.findAll().then(result => res.json(result));
-}
-
-function findById(req, res) {
-  Classroom.findByPk(req.params.id).then(result => res.json(result));
-}
-
-async function addClassroom(req, res) {
+const getClassrooms = async (req, res) => {
   try {
-    const response = await Classroom.create({
-      name: req.body.name,
-      deskCapacity: req.body.deskCapacity,
-      isBlocked: req.body.isBlocked,
-      schoolId: req.body.schoolId
+    const classrooms = await Classroom.findAll({
+      include: [
+        School,
+        {
+          model: Teacher,
+          attributes: ['id', 'name'],
+          through: {
+            attributes: []
+          }
+        }
+      ]
     });
 
-    return res.status(200).json(response);
+    return res.status(200).json(classrooms);
   } catch (error) {
-    return res.status(500).send({ message: error });
+    return res.status(500).json({ message: 'Erro interno do servidor', error });
   }
-}
+};
 
-async function updateClassroom(req, res) {
-  await Classroom.update(
-    {
-      name: req.body.name,
-      deskCapacity: req.body.deskCapacity,
-      isBlocked: req.body.isBlocked,
-      schoolId: req.body.schoolId
-    },
-    {
-      where: {
-        id: req.params.id
-      }
+const createClassroom = async (req, res) => {
+  try {
+    const { name, deskCapacity, schoolId, isBlocked, teachersIds } = req.body;
+
+    const school = await School.findByPk(schoolId);
+
+    if (!school) {
+      return res.status(404).json({ message: 'Colégio não encontrado' });
     }
-  );
 
-  Classroom.findByPk(req.params.id).then(result => res.json(result));
-}
+    const classroom = await Classroom.create({
+      name,
+      deskCapacity,
+      schoolId,
+      isBlocked
+    });
 
-async function deleteClassroom(req, res) {
-  await Classroom.destroy({
-    where: {
-      id: req.params.id
+    const teachers = [];
+
+    await teachersIds.map(async id => {
+      const teacher = await Teacher.findByPk(id);
+      console.log('\n\nteacher: ', teacher);
+      const response = await classroom.addTeacher(teacher);
+      console.log('resposta: ', response);
+      console.log('\n\n');
+    });
+
+    // console.log('\n\nteachers: ', teachers);
+    // console.log('\n\n');
+    // const response = await classroom.addTeacher(teachers);
+
+    // console.log('\n\n resposta: ', response);
+
+    return res.status(201).json(classroom);
+  } catch (error) {
+    return res.status(500).json({ message: 'Erro interno do servidor', error });
+  }
+};
+
+const updateClassroom = async (req, res) => {
+  try {
+    const school = await School.findByPk(req.body.schoolId);
+
+    if (!school) {
+      return res.status(404).json({ message: 'Colégio não encontrado' });
     }
-  });
 
-  Classroom.findAll().then(result => res.json(result));
-}
+    const rowsAffected = await Classroom.update(
+      { ...req.body },
+      { where: { id: req.params.id } }
+    );
+
+    if (rowsAffected[0] === 0) {
+      return res.status(404).json({ message: 'Sala não encontrada.' });
+    }
+
+    return res.status(200).json({ message: 'Sala atualizada com sucesso.' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Erro interno do servidor', error });
+  }
+};
+
+const deleteClassroom = async (req, res) => {
+  try {
+    const rowsAffected = await Classroom.destroy({
+      where: { id: req.params.id }
+    });
+
+    if (rowsAffected === 0) {
+      return res.status(404).json({ message: 'Sala não encontrada.' });
+    }
+
+    return res.status(200).json({ message: 'Sala removida com sucesso.' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Erro interno do servidor', error });
+  }
+};
+
+const findClassroomById = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const classroom = await Classroom.findByPk(id, {
+      include: School
+    });
+
+    if (!classroom) {
+      return res.status(404).json({ message: 'Sala não encontrada.' });
+    }
+
+    return res.status(200).json(classroom);
+  } catch (error) {
+    return res.status(500).json({ message: 'Erro interno do servidor', error });
+  }
+};
 
 export default {
-  findAll,
-  findById,
-  addClassroom,
+  getClassrooms,
+  createClassroom,
   updateClassroom,
-  deleteClassroom
+  deleteClassroom,
+  findClassroomById
 };

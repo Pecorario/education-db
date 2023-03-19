@@ -11,6 +11,9 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(routes);
-db.sync();
 
-app.listen(3000, () => console.log('Servidor iniciado na porta 3000'));
+db.sync()
+  .then(() => console.log('\n\nTabelas criadas com sucesso.'))
+  .catch(err => console.error('\n\nErro ao criar tabelas:', err));
+
+app.listen(3333, () => console.log('\n\nServidor iniciado na porta 3333'));

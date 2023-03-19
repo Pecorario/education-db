@@ -2,84 +2,106 @@ import User from '../models/usersModel.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-function findAll(req, res) {
-  User.findAll().then(result => res.json(result));
-}
+const getUsers = async (req, res) => {
+  try {
+    const users = await User.findAll();
 
-function findById(req, res) {
-  User.findByPk(req.params.id).then(result => res.json(result));
-}
-
-async function addUser(req, res, next) {
-  const registeredUser = await User.findOne({
-    where: { username: req.body.username }
-  });
-
-  if (registeredUser !== null) {
-    return res.status(409).send({ message: 'Este username já está em uso!' });
-  } else {
-    bcrypt.hash(req.body.password, 10, (err, hash) => {
-      if (err) {
-        return res.status(500).send({ message: `Erro: ${err}` });
-      } else {
-        User.create({
-          username: req.body.username,
-          password: hash
-        }).then((error, result) => {
-          if (error) {
-            return res.status(400).send({ message: error });
-          }
-          return res
-            .status(201)
-            .send({ message: 'Usuário cadastrado com sucesso!' });
-        });
-      }
-    });
+    return res.json(users);
+  } catch (error) {
+    return res.status(500).json({ message: 'Erro interno de servidor', error });
   }
-}
+};
 
-async function login(req, res, next) {
-  const myUser = await User.findOne({
-    where: { username: req.body.username }
-  });
-
-  if (myUser === null) {
-    return res.status(401).send({ message: 'Usuário não encontrado!' });
-  } else {
-    bcrypt.compare(req.body.password, myUser.password, (err, result) => {
-      if (err) {
-        return res.status(401).send({ message: 'Senha incorreta' });
-      } else if (result) {
-        const token = jwt.sign(
-          {
-            username: myUser.username,
-            userId: myUser.id
-          },
-          'SECRETKEY',
-          {
-            expiresIn: '1d'
-          }
-        );
-
-        return res.status(200).send({
-          message: 'Login feito com sucesso!',
-          user: myUser.username,
-          token
-        });
-      }
-      return res.status(401).send({ message: result });
-    });
-  }
-}
-
-async function deleteUser(req, res) {
-  await User.destroy({
-    where: {
-      id: req.params.id
+const findUserById = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
     }
-  });
+    return res.json(user);
+  } catch (error) {
+    return res.status(500).json({ message: 'Erro interno de servidor', error });
+  }
+};
 
-  User.findAll().then(result => res.json(result));
-}
+const createUser = async (req, res) => {
+  try {
+    const registeredUser = await User.findOne({
+      where: { username: req.body.username }
+    });
 
-export default { findAll, findById, addUser, login, deleteUser };
+    if (registeredUser) {
+      return res.status(409).json({ message: 'Este username já está em uso!' });
+    }
+
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+    await User.create({
+      username: req.body.username,
+      password: hashedPassword
+    });
+
+    return res.status(201).json({ message: 'Usuário cadastrado com sucesso!' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Erro interno de servidor', error });
+  }
+};
+
+const login = async (req, res) => {
+  try {
+    const myUser = await User.findOne({
+      where: { username: req.body.username }
+    });
+
+    if (!myUser) {
+      return res.status(401).json({ message: 'Usuário não encontrado!' });
+    }
+
+    const passwordMatch = await bcrypt.compare(
+      req.body.password,
+      myUser.password
+    );
+    if (!passwordMatch) {
+      return res.status(401).json({ message: 'Senha incorreta!' });
+    }
+
+    const token = jwt.sign(
+      {
+        username: myUser.username,
+        userId: myUser.id
+      },
+      'SECRETKEY',
+      {
+        expiresIn: '3d'
+      }
+    );
+
+    return res.status(200).json({
+      message: 'Login feito com sucesso!',
+      user: myUser.username,
+      token
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Erro interno de servidor', error });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  try {
+    const rowsAffected = await User.destroy({
+      where: {
+        id: req.params.id
+      }
+    });
+
+    if (rowsAffected === 0) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+
+    return res.status(200).json({ message: 'Usuário removido com sucesso' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Erro interno de servidor', error });
+  }
+};
+
+export default { getUsers, findUserById, createUser, login, deleteUser };

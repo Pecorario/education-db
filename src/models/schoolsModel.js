@@ -1,7 +1,7 @@
 import { Sequelize } from 'sequelize';
 import db from '../db.js';
 
-export default db.define('school', {
+const School = db.define('school', {
   id: {
     type: Sequelize.INTEGER.UNSIGNED,
     primaryKey: true,
@@ -25,3 +25,5 @@ export default db.define('school', {
     allowNull: false
   }
 });
+
+export default School;

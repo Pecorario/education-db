@@ -10,14 +10,17 @@ const dbPassword = process.env.DB_PASSWORD;
 
 const sequelize = new Sequelize(dbName, dbUser, dbPassword, {
   dialect: 'mysql',
-  host: dbHost
+  host: dbHost,
+  define: {
+    timestamps: false
+  }
 });
 
-try {
-  await sequelize.authenticate();
-  console.log('Connection has been established successfully.');
-} catch (error) {
-  console.error('Unable to connect to the database:', error);
-}
+sequelize
+  .authenticate()
+  .then(() =>
+    console.log('\n\nConexão com o banco de dados estabelecida com sucesso.')
+  )
+  .catch(err => console.error('\n\nErro ao conectar ao banco de dados:', err));
 
 export default sequelize;

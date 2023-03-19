@@ -5,13 +5,14 @@ import userMiddleware from './src/middleware/users.js';
 import userController from './src/controllers/users.js';
 import schoolController from './src/controllers/schools.js';
 import classroomController from './src/controllers/classrooms.js';
+import teacherController from './src/controllers/teachers.js';
 
 const routes = express.Router();
 
 routes.post(
   '/sign-up',
   userMiddleware.validateRegister,
-  userController.addUser
+  userController.createUser
 );
 routes.post('/login', userController.login);
 
@@ -21,11 +22,15 @@ routes.delete(
   userMiddleware.isLoggedIn,
   userController.deleteUser
 );
-routes.get('/users', userMiddleware.isLoggedIn, userController.findAll);
+routes.get('/users', userMiddleware.isLoggedIn, userController.getUsers);
 
 // schools
-routes.get('/schools', userMiddleware.isLoggedIn, schoolController.findAll);
-routes.post('/schools', userMiddleware.isLoggedIn, schoolController.addSchool);
+routes.get('/schools', userMiddleware.isLoggedIn, schoolController.getSchools);
+routes.post(
+  '/schools',
+  userMiddleware.isLoggedIn,
+  schoolController.createSchool
+);
 routes.delete(
   '/schools/:id',
   userMiddleware.isLoggedIn,
@@ -34,7 +39,7 @@ routes.delete(
 routes.get(
   '/schools/:id',
   userMiddleware.isLoggedIn,
-  schoolController.findById
+  schoolController.findSchoolById
 );
 routes.put(
   '/schools/:id',
@@ -46,12 +51,12 @@ routes.put(
 routes.get(
   '/classrooms',
   userMiddleware.isLoggedIn,
-  classroomController.findAll
+  classroomController.getClassrooms
 );
 routes.post(
   '/classrooms',
   userMiddleware.isLoggedIn,
-  classroomController.addClassroom
+  classroomController.createClassroom
 );
 routes.delete(
   '/classrooms/:id',
@@ -61,12 +66,39 @@ routes.delete(
 routes.get(
   '/classrooms/:id',
   userMiddleware.isLoggedIn,
-  classroomController.findById
+  classroomController.findClassroomById
 );
 routes.put(
   '/classrooms/:id',
   userMiddleware.isLoggedIn,
   classroomController.updateClassroom
+);
+
+// teachers
+routes.get(
+  '/teachers',
+  userMiddleware.isLoggedIn,
+  teacherController.getTeachers
+);
+routes.post(
+  '/teachers',
+  userMiddleware.isLoggedIn,
+  teacherController.createTeacher
+);
+routes.delete(
+  '/teachers/:id',
+  userMiddleware.isLoggedIn,
+  teacherController.deleteTeacher
+);
+routes.get(
+  '/teachers/:id',
+  userMiddleware.isLoggedIn,
+  teacherController.getTeacherById
+);
+routes.put(
+  '/teachers/:id',
+  userMiddleware.isLoggedIn,
+  teacherController.updateTeacher
 );
 
 export { routes as default };

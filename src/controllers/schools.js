@@ -1,54 +1,90 @@
-import School from '../models/schoolsModel.js';
+import { School, Classroom } from '../../associations.js';
 
-function findAll(req, res) {
-  School.findAll().then(result => res.json(result));
-}
-
-function findById(req, res) {
-  School.findByPk(req.params.id).then(result => res.json(result));
-}
-
-async function addSchool(req, res) {
+const getSchools = async (req, res) => {
   try {
-    const response = await School.create({
-      name: req.body.name,
-      city: req.body.city,
-      state: req.body.state,
-      symbol: req.body.symbol
+    const schools = await School.findAll({ include: Classroom });
+
+    return res.status(200).json(schools);
+  } catch (error) {
+    return res.status(500).json({ message: 'Erro interno do servidor', error });
+  }
+};
+
+const createSchool = async (req, res) => {
+  try {
+    const { name, city, state, symbol } = req.body;
+
+    const school = await School.create({
+      name,
+      city,
+      state,
+      symbol
     });
 
-    return res.status(200).json(response);
+    return res.status(201).json(school);
   } catch (error) {
-    return res.status(500).send({ message: error });
+    return res.status(500).json({ message: 'Erro interno do servidor', error });
   }
-}
+};
 
-async function updateSchool(req, res) {
-  await School.update(
-    {
-      name: req.body.name,
-      city: req.body.city,
-      state: req.body.state,
-      symbol: req.body.symbol
-    },
-    {
-      where: {
-        id: req.params.id
-      }
+const updateSchool = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { name, city, state, symbol } = req.body;
+
+    const rowsAffected = await School.update(
+      { name, city, state, symbol },
+      { where: { id }, include: Classroom }
+    );
+
+    if (rowsAffected[0] === 0) {
+      return res.status(404).json({ message: 'Colégio não encontrado.' });
     }
-  );
 
-  School.findByPk(req.params.id).then(result => res.json(result));
-}
+    return res.status(200).json({ message: 'Colégio atualizado com sucesso' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Erro interno do servidor', error });
+  }
+};
 
-async function deleteSchool(req, res) {
-  await School.destroy({
-    where: {
-      id: req.params.id
+const deleteSchool = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const rowsAffected = await School.destroy({ where: { id } });
+
+    if (rowsAffected === 0) {
+      return res.status(404).json({ message: 'Colégio não encontrado.' });
     }
-  });
 
-  School.findAll().then(result => res.json(result));
-}
+    return res.status(200).json({ message: 'Colégio removido com sucesso' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Erro interno do servidor', error });
+  }
+};
 
-export default { findAll, findById, addSchool, updateSchool, deleteSchool };
+const findSchoolById = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const school = await School.findByPk(id, {
+      include: { model: Classroom, as: 'classrooms' }
+    });
+
+    if (!school) {
+      return res.status(404).json({ message: 'Colégio não encontrado.' });
+    }
+
+    return res.status(200).json(school);
+  } catch (error) {
+    return res.status(500).json({ message: 'Erro interno do servidor', error });
+  }
+};
+
+export default {
+  getSchools,
+  createSchool,
+  updateSchool,
+  deleteSchool,
+  findSchoolById
+};

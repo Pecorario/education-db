@@ -1,7 +1,7 @@
 import { Sequelize } from 'sequelize';
 import db from '../db.js';
 
-const Classroom = db.define('classroom', {
+const Teacher = db.define('teacher', {
   id: {
     type: Sequelize.INTEGER.UNSIGNED,
     primaryKey: true,
@@ -11,15 +11,7 @@ const Classroom = db.define('classroom', {
   name: {
     type: Sequelize.STRING,
     allowNull: false
-  },
-  deskCapacity: {
-    type: Sequelize.INTEGER,
-    allowNull: false
-  },
-  isBlocked: {
-    type: Sequelize.BOOLEAN,
-    allowNull: false
   }
 });
 
-export default Classroom;
+export default Teacher;
