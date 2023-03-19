@@ -72,22 +72,6 @@ async function login(req, res, next) {
   }
 }
 
-async function updateUser(req, res) {
-  await User.update(
-    {
-      username: req.body.username,
-      password: req.body.password
-    },
-    {
-      where: {
-        id: req.params.id
-      }
-    }
-  );
-
-  User.findByPk(req.params.id).then(result => res.json(result));
-}
-
 async function deleteUser(req, res) {
   await User.destroy({
     where: {
@@ -98,4 +82,4 @@ async function deleteUser(req, res) {
   User.findAll().then(result => res.json(result));
 }
 
-export default { findAll, findById, addUser, login, updateUser, deleteUser };
+export default { findAll, findById, addUser, login, deleteUser };
