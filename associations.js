@@ -3,7 +3,6 @@ import Teacher from './src/models/teachersModel.js';
 import School from './src/models/schoolsModel.js';
 import ClassroomTeacher from './src/models/classroomTeachersModel.js';
 
-// Definir as associações entre os modelos
 Classroom.belongsToMany(Teacher, {
   through: ClassroomTeacher,
   foreignKey: 'classroomId'
@@ -21,5 +20,5 @@ School.hasMany(Classroom, {
   foreignKey: 'schoolId',
   onDelete: 'CASCADE'
 });
-// Exportar os modelos com as associações definidas
+
 export { School, Classroom, Teacher, ClassroomTeacher };

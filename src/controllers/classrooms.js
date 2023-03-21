@@ -38,21 +38,7 @@ const createClassroom = async (req, res) => {
       isBlocked
     });
 
-    const teachers = [];
-
-    await teachersIds.map(async id => {
-      const teacher = await Teacher.findByPk(id);
-      console.log('\n\nteacher: ', teacher);
-      const response = await classroom.addTeacher(teacher);
-      console.log('resposta: ', response);
-      console.log('\n\n');
-    });
-
-    // console.log('\n\nteachers: ', teachers);
-    // console.log('\n\n');
-    // const response = await classroom.addTeacher(teachers);
-
-    // console.log('\n\n resposta: ', response);
+    await classroom.addTeacher(teachersIds);
 
     return res.status(201).json(classroom);
   } catch (error) {
@@ -62,20 +48,21 @@ const createClassroom = async (req, res) => {
 
 const updateClassroom = async (req, res) => {
   try {
-    const school = await School.findByPk(req.body.schoolId);
+    const { name, deskCapacity, schoolId, isBlocked, teachersIds } = req.body;
+
+    const school = await School.findByPk(schoolId);
+    const classroom = await Classroom.findByPk(req.params.id);
 
     if (!school) {
       return res.status(404).json({ message: 'Colégio não encontrado' });
     }
 
-    const rowsAffected = await Classroom.update(
-      { ...req.body },
-      { where: { id: req.params.id } }
-    );
-
-    if (rowsAffected[0] === 0) {
-      return res.status(404).json({ message: 'Sala não encontrada.' });
+    if (!classroom) {
+      return res.status(404).json({ message: 'Sala de aula não encontrada' });
     }
+
+    await classroom.setTeachers(teachersIds);
+    await classroom.update({ name, deskCapacity, schoolId, isBlocked });
 
     return res.status(200).json({ message: 'Sala atualizada com sucesso.' });
   } catch (error) {

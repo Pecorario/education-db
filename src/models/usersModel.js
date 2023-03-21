@@ -1,7 +1,7 @@
 import { Sequelize } from 'sequelize';
 import db from '../db.js';
 
-export default db.define('user', {
+const User = db.define('user', {
   id: {
     type: Sequelize.INTEGER.UNSIGNED,
     primaryKey: true,
@@ -17,3 +17,5 @@ export default db.define('user', {
     allowNull: false
   }
 });
+
+export default User;

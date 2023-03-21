@@ -20,6 +20,10 @@ const Classroom = db.define('classroom', {
     type: Sequelize.BOOLEAN,
     allowNull: false
   }
+  // schedule: {
+  //   type: Sequelize.STRING,
+  //   allowNull: false
+  // }
 });
 
 export default Classroom;

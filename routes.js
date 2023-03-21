@@ -6,6 +6,7 @@ import userController from './src/controllers/users.js';
 import schoolController from './src/controllers/schools.js';
 import classroomController from './src/controllers/classrooms.js';
 import teacherController from './src/controllers/teachers.js';
+import dashboardController from './src/controllers/dashboard.js';
 
 const routes = express.Router();
 
@@ -99,6 +100,28 @@ routes.put(
   '/teachers/:id',
   userMiddleware.isLoggedIn,
   teacherController.updateTeacher
+);
+
+//dashboard
+routes.get(
+  '/dashboard/general-info',
+  userMiddleware.isLoggedIn,
+  dashboardController.getGeneralInfo
+);
+routes.get(
+  '/dashboard/classrooms-info/:id',
+  userMiddleware.isLoggedIn,
+  dashboardController.getClassroomsInfoBySchoolId
+);
+routes.get(
+  '/dashboard/schools-data',
+  userMiddleware.isLoggedIn,
+  dashboardController.getSchoolsData
+);
+routes.get(
+  '/dashboard/teachers-data',
+  userMiddleware.isLoggedIn,
+  dashboardController.getTeachersData
 );
 
 export { routes as default };
